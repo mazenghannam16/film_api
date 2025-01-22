@@ -1,166 +1,203 @@
-<!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بحث عن تريلر الفيلم من YouTube</title>
+    <title>مولد اكود HTML</title>
     <style>
+        /* خلفية الصفحة */
         body {
-            font-family: 'Cairo', sans-serif;
-            text-align: center;
-            padding: 20px;
-            background-color: #124364;
+            background-color: #164384;
             color: #fff;
-        }
-
-        .search-container {
-            background-color: #022020;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            display: inline-block;
-        }
-
-        .search-container input {
-            padding: 12px;
-            font-size: 18px;
             font-family: 'Cairo', sans-serif;
-            border: none;
-            border-radius: 5px;
-            width: 250px;
-            outline: none;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            margin: 0;
+            padding: 0;
+            direction: rtl; /* دعم الكتابة من اليمين لليسار */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center; /* توسيط النصوص داخل body */
         }
-
-        .search-container input:focus {
-            border: 2px solid #011C44;
-        }
-
-        .search-container button {
-            padding: 12px;
-            font-size: 16px;
-            font-family: 'Cairo', sans-serif;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f1c40f;
-            color: #310003;
-            cursor: pointer;
-            margin-left: 10px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .search-container button:hover {
-            background-color: #e67e22;
-        }
-
-        #result {
-            margin-top: 20px;
-        }
-
-        .container {
-            background-color: #f2f2f2;
-            border-radius: 10px;
-            padding: 20px;
-            width: 300px;
-            text-align: left;
-            margin: 0 auto;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .container textarea {
-            width: 100%;
-            height: 40px;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            background-color: #ffffff;
-            color: #310003;
-            font-family: 'Cairo', sans-serif;
-            font-weight: bold;
-            resize: none;
-        }
-
-        .container button {
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-
-        .container button:hover {
-            background-color: #555;
-        }
-
-        .alert {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f1f1f1;
-            color: black;
-            border-radius: 5px;
-            font-weight: bold;
-        }
+        /* تنسيقات بسيطة */
+        .container { margin-top: 30px; }
+        input, button { padding: 10px; margin: 10px 0; }
+        textarea { width: 100%; height: 300px; }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>مولد كود HTML للفيلم</h1>
 
-    <h1>ابحث عن تريلر الفيلم من YouTube</h1>
-    <div class="search-container">
-        <input type="text" id="searchTerm" placeholder="أدخل اسم الفيلم">
-        <button onclick="searchTrailer()">بحث عن التريلر</button>
+        <!-- نموذج إدخال اسم الفيلم -->
+        <input type="text" id="movieName" placeholder="أدخل اسم الفيلم هنا" />
+        <button onclick="generateCode()">توليد الكود</button>
+
+        <!-- منطقة عرض الكود المولد -->
+        <h3>الكود المولد:</h3>
+        <textarea id="generatedCode" readonly></textarea>
+        <button onclick="copyCode()">نسخ الكود</button>
     </div>
 
-    <div id="result"></div>
-    <div id="alertMessage" class="alert" style="display: none;"></div> <!-- الرسالة المخصصة -->
-
     <script>
-        const youtubeApiKey = 'AIzaSyB_2WwV8txnrP11cna8RIYkFstpgOFCEn4'; // مفتاح API الخاص بـ YouTube
+        const apiKey = '4b1125dc507cd0f303b025b30d6311dd'; // API key
 
-        async function searchTrailer() {
-            const searchTerm = document.getElementById('searchTerm').value;
-            if (!searchTerm) {
-                alert('الرجاء إدخال اسم الفيلم');
+        function generateCode() {
+            const movieName = document.getElementById('movieName').value;
+
+            // تحقق من إدخال اسم الفيلم
+            if (!movieName) {
+                alert("يرجى إدخال اسم الفيلم!");
                 return;
             }
 
-            const searchUrl = `https://www.googleapis.com/youtube/v3/search?key=${youtubeApiKey}&part=snippet&q=${searchTerm}+تريلر+فيلم`;
-            try {
-                const response = await fetch(searchUrl);
-                const data = await response.json();
-                const video = data.items.find(item => item.id.kind === 'youtube#video');
-                if (video) {
-                    const trailerUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
-                    document.getElementById('result').innerHTML = `
-                        <div class="container">
-                            <h3>رابط تريلر الفيلم:</h3>
-                            <textarea id="trailerLink" readonly>${trailerUrl}</textarea>
-                            <button onclick="copyText('trailerLink')">نسخ الرابط</button>
+            // إرسال الطلب باستخدام اسم الفيلم
+            fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(movieName)}&language=ar`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results.length === 0) {
+                        alert("لم يتم العثور على الفيلم.");
+                        return;
+                    }
+
+                    const movie = data.results[0]; // أخذ أول نتيجة
+                    const movieId = movie.id; // أخذ ID الفيلم
+                    const title = movie.title; // الاسم باللغة العربية إن وجد
+                    const description = movie.overview; // الوصف باللغة العربية إن وجد
+                    const image = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                    const year = movie.release_date.split("-")[0];
+                    const language = movie.original_language; // اللغة
+                    const genres = movie.genre_ids; // الأنواع
+
+                    // تحديد "القسم" بناءً على اللغة
+                    let section = '';
+                    let sectionLink = '';
+                    if (language === 'ar') {
+                        section = 'أفلام عربية';
+                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9'; // رابط الأفلام العربية
+                    } else if (language === 'en') {
+                        section = 'أفلام أجنبية';
+                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%AC%D9%86%D8%A8%D9%8A%D8%A9'; // رابط الأفلام الأجنبية
+                    } else if (language === 'hi') {
+                        section = 'أفلام هندية';
+                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9'; // رابط الأفلام الهندية
+                    } else if (language === 'ko') {
+                        section = 'أفلام كورية';
+                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%B3%D9%8A%D9%88%D9%8A%D8%A9'; // رابط الأفلام الكورية
+                    } else {
+                        section = 'أفلام أخرى';
+                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%B3%D9%8A%D9%88%D9%8A%D8%A9'; // رابط الأفلام الأخرى
+                    }
+
+                    // تحديد "النوع" بناءً على الأنواع
+                    const genreList = {
+                        28: 'أكشن',
+                        12: 'مغامرة',
+                        16: 'أنمي',
+                        35: 'كوميدي',
+                        80: 'جريمة',
+                        99: 'وثائقي',
+                        18: 'دراما',
+                        27: 'رعب',
+                        10402: 'موسيقى',
+                        10749: 'رومانسية',
+                        878: 'خيال علمي',
+                        10770: 'تلفزيون',
+                        53: 'إثارة',
+                        10752: 'حرب',
+                        37: 'ويسترن'
+                    };
+
+                    // افتراض وجود الأنواع الأكثر شيوعًا
+                    let genreNames = genres.map(genreId => genreList[genreId] || 'غير معروف');
+
+                    // طلب التريلر باستخدام ID الفيلم
+                    fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${apiKey}&language=ar`)
+                        .then(response => response.json())
+                        .then(videoData => {
+                            let trailerLink = '';
+                            if (videoData.results.length > 0) {
+                                trailerLink = `https://www.youtube.com/watch?v=${videoData.results[0].key}`;
+                            }
+
+                            // توليد الكود النهائي مع البيانات المستخلصة
+                            const htmlCode = `
+<yourdesigns>
+    <mohamedsafyan>
+        <div class="post-single">
+            <div class="container">
+                <div class="single-poster">
+                    <div class="separator" style="clear: both;">
+                        <a href="${image}" style="display: block; padding: 1em 0; text-align: center;">
+                            <img alt="${title}" border="0" data-original-height="545" data-original-width="394" src="${image}" />
+                        </a>
+                    </div>
+                </div>
+                <div class="post-single-content">
+                    <h1> - مشاهدة ${title} </h1>
+                    <div class="post-Inner"></div>
+                    <div class="post-single-watching">
+                        <div class="story">
+                            <h2>القصة</h2>
+                            <p>${description}</p>
                         </div>
-                    `;
-                } else {
-                    document.getElementById('result').innerHTML = `<p>لم يتم العثور على تريلر للفيلم.</p>`;
-                }
-            } catch (error) {
-                console.error('حدث خطأ:', error);
-                document.getElementById('result').innerHTML = `<p>حدث خطأ أثناء البحث. الرجاء المحاولة مرة أخرى.</p>`;
-            }
+                    </div>
+                    <ul class="post-information-list">
+                        <li><span>الجودة:</span> <a href="#">1080p</a></li>
+                        <li><span>القسم:</span> <a href="${sectionLink}">${section}</a></li>
+                        <li><span>السنة:</span> <a href="#">${year}</a></li>
+                        <li><span>النوع:</span> <a href="#">${genreNames.join(', ')}</a></li>
+                        <li><span>تم اضافة الفيلم بواسطة</span> <a href="#">Mazen Mohamed</a></li>
+                    </ul>
+                    <div class="post-single-buttons">
+                        ${trailerLink ? `<a href="${trailerLink}" class="dropbtn WatchingArea TrailerColorButton Hoverable">
+                            <span><i class="fa fa-youtube-play"></i> مشاهدة إعلان العرض<i class="fa fa-angle-left"></i></span>
+                        </a>` : ''}
+                        <a href="#" class="WatchingArea Hoverable">
+                            <span class="WatchNow"><em class="WatchIcon"></em> مشاهدة و تحميل الآن <i class="fa fa-angle-left"></i></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="RelatedPostsHead">
+            <div class="container">
+                <h1>عروض ذات صلة</h1>
+                <ul>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%AC%D9%86%D8%A8%D9%8A%D8%A9" target="_blank" class="RelatedLiActive">افلام اجنبية</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9" target="_blank">أفلام عربية</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9" target="_blank">أفلام هندية</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%AA%D8%B1%D9%83%D9%8A%D8%A9" target="_blank">أفلام تركية</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%B3%D9%8A%D9%88%D9%8A%D8%A9" target="_blank">أفلام أسيوية</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%83%D8%B1%D8%AA%D9%88%D9%86" target="_blank" class="RelatedLiActive">أفلام كرتون</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D9%85%D8%B3%D9%84%D8%B3%D9%84%D8%A7%D8%AA%20%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9" target="_blank" class="RelatedLiActive">مسلسلات عربية</a></li>
+                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D9%85%D8%B3%D9%84%D8%B3%D9%84%D8%A7%D8%AA%20%D8%A3%D9%8F%20%...
+                </ul>
+            </div>
+        </div>
+    </mohamedsafyan>
+</yourdesigns>
+                            `;
+
+                            // عرض الكود المولد في النص
+                            document.getElementById('generatedCode').value = htmlCode;
+                        })
+                        .catch(error => {
+                            console.error("حدث خطأ أثناء جلب التريلر:", error);
+                            alert("حدث خطأ أثناء جلب التريلر.");
+                        });
+                })
+                .catch(error => {
+                    console.error("حدث خطأ أثناء جلب بيانات الفيلم:", error);
+                    alert("حدث خطأ أثناء جلب بيانات الفيلم.");
+                });
         }
 
-        function copyText(id) {
-            const textArea = document.getElementById(id);
-            textArea.select();
-            textArea.setSelectionRange(0, 99999); // للهواتف
-            document.execCommand("copy");
-            const alertMessage = document.getElementById('alertMessage');
-            alertMessage.textContent = "تم نسخ الرابط إلى الحافظة!";  // تغيير الرسالة
-            alertMessage.style.display = "block";  // عرض الرسالة
-            setTimeout(() => alertMessage.style.display = "none", 3000); // إخفاء الرسالة بعد 3 ثواني
+        function copyCode() {
+            const code = document.getElementById('generatedCode');
+            code.select();
+            document.execCommand('copy');
+            alert("تم نسخ الكود!");
         }
     </script>
-
 </body>
 </html>
