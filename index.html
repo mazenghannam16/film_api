@@ -2,198 +2,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مولد اكود HTML</title>
+    <title>بحث عن مسلسل</title>
     <style>
-        /* خلفية الصفحة */
         body {
             background-color: #164384;
             color: #fff;
             font-family: 'Cairo', sans-serif;
             margin: 0;
             padding: 0;
-            direction: rtl; /* دعم الكتابة من اليمين لليسار */
+            direction: rtl;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            text-align: center; /* توسيط النصوص داخل body */
+            text-align: center;
         }
-        /* تنسيقات بسيطة */
-        .container { margin-top: 30px; }
-        input, button { padding: 10px; margin: 10px 0; }
-        textarea { width: 100%; height: 300px; }
+        .container { margin-top: 30px; width: 80%; max-width: 500px; }
+        input, button { padding: 10px; margin: 10px 0; width: 100%; }
+        button { background: #ff9800; color: #fff; border: none; cursor: pointer; }
+        button:hover { background: #e68900; }
+        .result img { max-width: 200px; display: block; margin: 10px auto; border-radius: 10px; }
+        .loading { display: none; color: yellow; }
+        .seasons { display: flex; flex-wrap: wrap; justify-content: center; }
+        .season-card { margin: 10px; text-align: center; }
+        .season-card img { width: 100px; height: 150px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>مولد كود HTML للفيلم</h1>
-
-        <!-- نموذج إدخال اسم الفيلم -->
-        <input type="text" id="movieName" placeholder="أدخل اسم الفيلم هنا" />
-        <button onclick="generateCode()">توليد الكود</button>
-
-        <!-- منطقة عرض الكود المولد -->
-        <h3>الكود المولد:</h3>
-        <textarea id="generatedCode" readonly></textarea>
-        <button onclick="copyCode()">نسخ الكود</button>
+        <h1>بحث عن مسلسل</h1>
+        <input type="text" id="seriesName" placeholder="أدخل اسم المسلسل" />
+        <button onclick="fetchSeries()">بحث</button>
+        <p id="loading" class="loading">جاري البحث...</p>
+        <div id="result" class="result"></div>
     </div>
 
     <script>
-        const apiKey = '4b1125dc507cd0f303b025b30d6311dd'; // API key
-
-        function generateCode() {
-            const movieName = document.getElementById('movieName').value;
-
-            // تحقق من إدخال اسم الفيلم
-            if (!movieName) {
-                alert("يرجى إدخال اسم الفيلم!");
+        async function fetchSeries() {
+            const seriesName = document.getElementById('seriesName').value;
+            if (!seriesName) {
+                alert("يرجى إدخال اسم المسلسل!");
                 return;
             }
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').innerHTML = '';
 
-            // إرسال الطلب باستخدام اسم الفيلم
-            fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(movieName)}&language=ar`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results.length === 0) {
-                        alert("لم يتم العثور على الفيلم.");
-                        return;
-                    }
+            try {
+                const response = await fetch(`https://api.themoviedb.org/3/search/tv?api_key=4b1125dc507cd0f303b025b30d6311dd&query=${encodeURIComponent(seriesName)}&language=ar`);
+                const data = await response.json();
+                if (data.results.length === 0) {
+                    alert("لم يتم العثور على المسلسل.");
+                    document.getElementById('loading').style.display = 'none';
+                    return;
+                }
 
-                    const movie = data.results[0]; // أخذ أول نتيجة
-                    const movieId = movie.id; // أخذ ID الفيلم
-                    const title = movie.title; // الاسم باللغة العربية إن وجد
-                    const description = movie.overview; // الوصف باللغة العربية إن وجد
-                    const image = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-                    const year = movie.release_date.split("-")[0];
-                    const language = movie.original_language; // اللغة
-                    const genres = movie.genre_ids; // الأنواع
+                const series = data.results[0];
+                const seriesId = series.id;
+                const title = series.name;
+                const image = `https://image.tmdb.org/t/p/w500${series.poster_path}`;
+                const overview = series.overview || "لا يوجد وصف متاح";
+                const rating = series.vote_average.toFixed(1);
+                const releaseYear = series.first_air_date ? series.first_air_date.split('-')[0] : "غير معروف";
+                
+                let resultHTML = `
+                    <img src="${image}" alt="${title}" />
+                    <button onclick="copyToClipboard('${image}')">نسخ الصورة</button>
+                    <h2>${title} (${releaseYear})</h2>
+                    <p>⭐ التقييم: ${rating}/10</p>
+                    <p>${overview}</p>
+                    <button onclick="copyToClipboard('${title}')">نسخ الاسم</button>
+                    <h3>المواسم:</h3>
+                    <div id="seasonsList" class="seasons"></div>
+                `;
+                document.getElementById('result').innerHTML = resultHTML;
 
-                    // تحديد "القسم" بناءً على اللغة
-                    let section = '';
-                    let sectionLink = '';
-                    if (language === 'ar') {
-                        section = 'أفلام عربية';
-                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9'; // رابط الأفلام العربية
-                    } else if (language === 'en') {
-                        section = 'أفلام أجنبية';
-                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%AC%D9%86%D8%A8%D9%8A%D8%A9'; // رابط الأفلام الأجنبية
-                    } else if (language === 'hi') {
-                        section = 'أفلام هندية';
-                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9'; // رابط الأفلام الهندية
-                    } else if (language === 'ko') {
-                        section = 'أفلام كورية';
-                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%B3%D9%8A%D9%88%D9%8A%D8%A9'; // رابط الأفلام الكورية
-                    } else {
-                        section = 'أفلام أخرى';
-                        sectionLink = 'https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%B3%D9%8A%D9%88%D9%8A%D8%A9'; // رابط الأفلام الأخرى
-                    }
-
-                    // تحديد "النوع" بناءً على الأنواع
-                    const genreList = {
-                        28: 'أكشن',
-                        12: 'مغامرة',
-                        16: 'أنمي',
-                        35: 'كوميدي',
-                        80: 'جريمة',
-                        99: 'وثائقي',
-                        18: 'دراما',
-                        27: 'رعب',
-                        10402: 'موسيقى',
-                        10749: 'رومانسية',
-                        878: 'خيال علمي',
-                        10770: 'تلفزيون',
-                        53: 'إثارة',
-                        10752: 'حرب',
-                        37: 'ويسترن'
-                    };
-
-                    // افتراض وجود الأنواع الأكثر شيوعًا
-                    let genreNames = genres.map(genreId => genreList[genreId] || 'غير معروف');
-
-                    // طلب التريلر باستخدام ID الفيلم
-                    fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${apiKey}&language=ar`)
-                        .then(response => response.json())
-                        .then(videoData => {
-                            let trailerLink = '';
-                            if (videoData.results.length > 0) {
-                                trailerLink = `https://www.youtube.com/watch?v=${videoData.results[0].key}`;
-                            }
-
-                            // توليد الكود النهائي مع البيانات المستخلصة
-                            const htmlCode = `
-<yourdesigns>
-    <mohamedsafyan>
-        <div class="post-single">
-            <div class="container">
-                <div class="single-poster">
-                    <div class="separator" style="clear: both;">
-                        <a href="${image}" style="display: block; padding: 1em 0; text-align: center;">
-                            <img alt="${title}" border="0" data-original-height="545" data-original-width="394" src="${image}" />
-                        </a>
-                    </div>
-                </div>
-                <div class="post-single-content">
-<h1 style="direction: rtl;"${title}</h1>
-
-                    <div class="post-Inner"></div>
-                    <div class="post-single-watching">
-                        <div class="story">
-                            <h2>القصة</h2>
-                            <p>${description}</p>
+                const seriesResponse = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}?api_key=4b1125dc507cd0f303b025b30d6311dd&language=ar`);
+                const seriesData = await seriesResponse.json();
+                const seasonsList = document.getElementById('seasonsList');
+                
+                seriesData.seasons.forEach(season => {
+                    let seasonHTML = `
+                        <div class="season-card">
+                            <img src="https://image.tmdb.org/t/p/w200${season.poster_path}" alt="${season.name}" onerror="this.src='https://via.placeholder.com/100x150'" />
+                            <p>${season.name}</p>
                         </div>
-                    </div>
-                    <ul class="post-information-list">
-                        <li><span>الجودة:</span> <a href="#">1080p</a></li>
-                        <li><span>القسم:</span> <a href="${sectionLink}">${section}</a></li>
-                        <li><span>السنة:</span> <a href="#">${year}</a></li>
-                        <li><span>النوع:</span> <a href="#">${genreNames.join(', ')}</a></li>
-                        <li><span>تم اضافة الفيلم بواسطة</span> <a href="#">Mazen Mohamed</a></li>
-                    </ul>
-                    <div class="post-single-buttons">
-                        ${trailerLink ? `<a href="${trailerLink}" class="dropbtn WatchingArea TrailerColorButton Hoverable">
-                            <span><i class="fa fa-youtube-play"></i> مشاهدة إعلان العرض<i class="fa fa-angle-left"></i></span>
-                        </a>` : ''}
-                        <a href="#" class="WatchingArea Hoverable">
-                            <span class="WatchNow"><em class="WatchIcon"></em> مشاهدة و تحميل الآن <i class="fa fa-angle-left"></i></span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="RelatedPostsHead">
-            <div class="container">
-                <h1>عروض ذات صلة</h1>
-                <ul>
-                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%A3%D8%AC%D9%86%D8%A8%D9%8A%D8%A9" target="_blank" class="RelatedLiActive">افلام اجنبية</a></li>
-                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9" target="_blank">أفلام عربية</a></li>
-                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D9%87%D9%86%D8%AF%D9%8A%D8%A9" target="_blank">أفلام هندية</a></li>
-                    <li><a href="https://alexbesteg.blogspot.com/search/label/%D8%A3%D9%81%D9%84%D8%A7%D9%85%20%D8%AA%D8%B1%D9%83%D9%8A%D8%A9" target="_blank">أفلام تركية</a></li>
-                </ul>
-            </div>
-        </div>
-    </mohamedsafyan>
-</yourdesigns>
-                            `;
-
-                            // عرض الكود المولد في النص
-                            document.getElementById('generatedCode').value = htmlCode;
-                        })
-                        .catch(error => {
-                            console.error("حدث خطأ أثناء جلب التريلر:", error);
-                            alert("حدث خطأ أثناء جلب التريلر.");
-                        });
-                })
-                .catch(error => {
-                    console.error("حدث خطأ أثناء جلب بيانات الفيلم:", error);
-                    alert("حدث خطأ أثناء جلب بيانات الفيلم.");
+                    `;
+                    seasonsList.innerHTML += seasonHTML;
                 });
+            } catch (error) {
+                console.error("حدث خطأ أثناء جلب بيانات المسلسل:", error);
+                alert("حدث خطأ أثناء جلب بيانات المسلسل.");
+            }
+            document.getElementById('loading').style.display = 'none';
         }
 
-        function copyCode() {
-            const code = document.getElementById('generatedCode');
-            code.select();
-            document.execCommand('copy');
-            alert("تم نسخ الكود!");
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("تم النسخ!");
+            }).catch(err => {
+                console.error("خطأ في النسخ", err);
+            });
         }
     </script>
 </body>
